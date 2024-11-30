@@ -1,14 +1,8 @@
-networks:
-  moodle-net:
-    driver: bridge
-
 services:
 
   mariadb:
     image: mariadb:11.6.2
     container_name: moodle-db
-    networks:
-      - moodle-net
     environment:
       - ALLOW_EMPTY_PASSWORD
       - MARIADB_USER
@@ -23,8 +17,6 @@ services:
     ports:
       - "8080:8080"
       - "8443:8443"
-    networks:
-      - moodle-net
     environment:
       - ALLOW_EMPTY_PASSWORD
       - MOODLE_DATABASE_USER
