@@ -16,6 +16,12 @@ services:
       MARIADB_DATABASE: ${DB_NAME}
     volumes:
       - ./moodle_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
 
   moodle:
     image: bitnami/moodle:latest
@@ -36,4 +42,11 @@ services:
       - ./moodle_data:/bitnami/moodle
       - ./moodledata_data:/bitnami/moodledata
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
