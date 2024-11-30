@@ -4,27 +4,27 @@ networks:
 services:
 
   mariadb:
-    image: bitnami/mariadb:latest
+    image: bitnami/mariadb:11.6.2
     container_name: moodle-db
     restart: always
     networks:
       - moodle-network
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
+      ALLOW_EMPTY_PASSWORD: no
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
       MARIADB_DATABASE: ${DB_NAME}
     volumes:
       - ./moodle_db:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASS}"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 45s
 
   moodle:
-    image: bitnami/moodle:latest
+    image: bitnami/moodle:4.4.4
     container_name: moodle
     networks:
       - moodle-network
@@ -32,7 +32,7 @@ services:
       - "8080:8080"
       - "8443:8443"
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
+      ALLOW_EMPTY_PASSWORD: no
       MOODLE_DATABASE_USER: ${DB_USER}
       MOODLE_DATABASE_PASSWORD: ${DB_PASS}
       MOODLE_DATABASE_NAME: ${DB_NAME}
@@ -45,8 +45,7 @@ services:
       mariadb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb", "-u", "${DB_USER}", "-p${DB_PASS}"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 45s
