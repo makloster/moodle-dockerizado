@@ -1,0 +1,6 @@
+*.sh
+.env
+/mis-pruebas-docker
+moodle_data
+moodle_db
+moodledata_data
