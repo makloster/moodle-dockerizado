@@ -1,37 +1,37 @@
 networks:
-  moodle-net:
-    driver: bridge
+  moodle-network:
 
 services:
 
   mariadb:
-    image: mariadb:11.6.2
+    image: bitnami/mariadb:latest
     container_name: moodle-db
+    restart: always
     networks:
-      - moodle-net
+      - moodle-network
     environment:
-      - ALLOW_EMPTY_PASSWORD
-      - MARIADB_USER
-      - MARIADB_PASSWORD
-      - MARIADB_DATABASE
+      ALLOW_EMPTY_PASSWORD: yes
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+      MARIADB_DATABASE: ${DB_NAME}
     volumes:
       - ./moodle_db:/var/lib/mysql
 
   moodle:
-    image: bitnami/moodle:4.4.4
+    image: bitnami/moodle:latest
     container_name: moodle
+    networks:
+      - moodle-network
     ports:
       - "8080:8080"
       - "8443:8443"
-    networks:
-      - moodle-net
     environment:
-      - ALLOW_EMPTY_PASSWORD
-      - MOODLE_DATABASE_USER
-      - MOODLE_DATABASE_PASSWORD
-      - MOODLE_DATABASE_NAME
-      - MOODLE_USERNAME
-      - MOODLE_PASSWORD
+      ALLOW_EMPTY_PASSWORD: yes
+      MOODLE_DATABASE_USER: ${DB_USER}
+      MOODLE_DATABASE_PASSWORD: ${DB_PASS}
+      MOODLE_DATABASE_NAME: ${DB_NAME}
+      MOODLE_USERNAME: ${MOODLE_USER}
+      MOODLE_PASSWORD: ${MOODLE_PASS}
     volumes:
       - ./moodle_data:/bitnami/moodle
       - ./moodledata_data:/bitnami/moodledata
