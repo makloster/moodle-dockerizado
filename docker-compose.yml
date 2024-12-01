@@ -5,6 +5,12 @@ volumes:
   moodle_db:
   moodle_data:
   moodledata_data:
+  tmpfs:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=64m
 
 services:
   mariadb:
@@ -14,7 +20,7 @@ services:
     networks:
       - moodle-network
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
       MARIADB_DATABASE: ${DB_NAME}
@@ -22,7 +28,7 @@ services:
       MARIADB_COLLATION: utf8mb4_unicode_ci
     volumes:
       - moodle_db:/var/lib/mysql
-
+      - tmpfs:/tmp
   moodle:
     image: bitnami/moodle:${MOODLE_VERSION}
     container_name: moodle
@@ -33,7 +39,6 @@ services:
       - "8443:8443"
     environment:
       BITNAMI_DEBUG: true
-      ALLOW_EMPTY_PASSWORD: yes
       MOODLE_DATABASE_USER: ${DB_USER}
       MOODLE_DATABASE_PASSWORD: ${DB_PASS}
       MOODLE_DATABASE_NAME: ${DB_NAME}
