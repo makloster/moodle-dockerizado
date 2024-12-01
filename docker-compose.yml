@@ -1,6 +1,11 @@
 networks:
   moodle-network:
 
+volumes:
+  moodle_db:
+  moodle_data:
+  moodledata_data:
+
 services:
   mariadb:
     image: bitnami/mariadb:${MARIADB_VERSION}
@@ -16,7 +21,7 @@ services:
       MARIADB_CHARACTER_SET: utf8mb4
       MARIADB_COLLATION: utf8mb4_unicode_ci
     volumes:
-      - ./moodle_db:/var/lib/mysql
+      - moodle_db:/var/lib/mysql
 
   moodle:
     image: bitnami/moodle:${MOODLE_VERSION}
@@ -35,7 +40,7 @@ services:
       MOODLE_USERNAME: ${MOODLE_USER}
       MOODLE_PASSWORD: ${MOODLE_PASS}
     volumes:
-      - ./moodle_data:/bitnami/moodle
-      - ./moodledata_data:/bitnami/moodledata
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
     depends_on:
       - mariadb
