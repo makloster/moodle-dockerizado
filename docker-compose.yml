@@ -16,7 +16,7 @@ services:
   mariadb:
     image: bitnami/mariadb:${MARIADB_VERSION}
     container_name: moodle-db
-    restart: always
+    restart: unless-stopped
     networks:
       - moodle-network
     environment:
@@ -29,14 +29,25 @@ services:
     volumes:
       - moodle_db:/var/lib/mysql
       - tmpfs:/tmp
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASS}"]
+      interval: ${HC_INTERVAL}
+      timeout: ${HC_TIMEOUT}
+      retries: ${HC_RETRIES}
+    labels:
+      - "com.example.mariadb=true"
+      - "service=mariadb"
+      - "env=${ENVIRONMENT}"
+
   moodle:
     image: bitnami/moodle:${MOODLE_VERSION}
     container_name: moodle
+    restart: unless-stopped
     networks:
       - moodle-network
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "8080:8080" # acceso HTTP a la app
+      - "8443:8443" # acceso HTTPS
     environment:
       BITNAMI_DEBUG: true
       MOODLE_DATABASE_USER: ${DB_USER}
@@ -48,4 +59,27 @@ services:
       - moodle_data:/bitnami/moodle
       - moodledata_data:/bitnami/moodledata
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb", "-u", "${DB_USER}", "-p${DB_PASS}"]
+      interval: ${HC_INTERVAL}
+      timeout: ${HC_TIMEOUT}
+      retries: ${HC_RETRIES}
+    deploy:
+      resources:
+        limits:
+          cpus: ${MAX_CPUS}
+          memory: ${MAX_MEMORY}
+        reservations:
+          cpus: ${MIN_CPUS}
+          memory: ${MIN_MEMORY}
+    logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
+    labels:
+      - "com.example.moodle=true"
+      - "service=moodle"
+      - "env=${ENVIRONMENT}"
