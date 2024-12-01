@@ -2,9 +2,8 @@ networks:
   moodle-network:
 
 services:
-
   mariadb:
-    image: bitnami/mariadb:latest
+    image: bitnami/mariadb:${MARIADB_VERSION}
     container_name: moodle-db
     restart: always
     networks:
@@ -14,11 +13,13 @@ services:
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
       MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_CHARACTER_SET: utf8mb4
+      MARIADB_COLLATION: utf8mb4_unicode_ci
     volumes:
       - ./moodle_db:/var/lib/mysql
 
   moodle:
-    image: bitnami/moodle:latest
+    image: bitnami/moodle:${MOODLE_VERSION}
     container_name: moodle
     networks:
       - moodle-network
@@ -26,6 +27,7 @@ services:
       - "8080:8080"
       - "8443:8443"
     environment:
+      BITNAMI_DEBUG: true
       ALLOW_EMPTY_PASSWORD: yes
       MOODLE_DATABASE_USER: ${DB_USER}
       MOODLE_DATABASE_PASSWORD: ${DB_PASS}
