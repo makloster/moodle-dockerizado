@@ -1,2 +1,7 @@
-#### Para correr con variables de entorno en un archivo .env:
-docker-compose --env-file .env -f docker-compose.yml up
+## Documentación
+
+### Configuración del despliegue:
+- Copiar ".env-example" a ".env" y settear las variables según convenga (se proveen valores de muestra)
+
+### Para iniciar los contenedores:
+- Correr 'docker compose up'.

@@ -1,39 +1,85 @@
 networks:
   moodle-network:
 
-services:
+volumes:
+  moodle_db:
+  moodle_data:
+  moodledata_data:
+  tmpfs:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=64m
 
+services:
   mariadb:
-    image: bitnami/mariadb:latest
+    image: bitnami/mariadb:${MARIADB_VERSION}
     container_name: moodle-db
-    restart: always
+    restart: unless-stopped
     networks:
       - moodle-network
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
       MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_CHARACTER_SET: utf8mb4
+      MARIADB_COLLATION: utf8mb4_unicode_ci
     volumes:
-      - ./moodle_db:/var/lib/mysql
+      - moodle_db:/var/lib/mysql
+      - tmpfs:/tmp
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASS}"]
+      interval: ${HC_INTERVAL}
+      timeout: ${HC_TIMEOUT}
+      retries: ${HC_RETRIES}
+    labels:
+      - "com.example.mariadb=true"
+      - "service=mariadb"
+      - "env=${ENVIRONMENT}"
 
   moodle:
-    image: bitnami/moodle:latest
+    image: bitnami/moodle:${MOODLE_VERSION}
     container_name: moodle
+    restart: unless-stopped
     networks:
       - moodle-network
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "8080:8080" # acceso HTTP a la app
+      - "8443:8443" # acceso HTTPS
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
+      BITNAMI_DEBUG: true
       MOODLE_DATABASE_USER: ${DB_USER}
       MOODLE_DATABASE_PASSWORD: ${DB_PASS}
       MOODLE_DATABASE_NAME: ${DB_NAME}
       MOODLE_USERNAME: ${MOODLE_USER}
       MOODLE_PASSWORD: ${MOODLE_PASS}
     volumes:
-      - ./moodle_data:/bitnami/moodle
-      - ./moodledata_data:/bitnami/moodledata
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb", "-u", "${DB_USER}", "-p${DB_PASS}"]
+      interval: ${HC_INTERVAL}
+      timeout: ${HC_TIMEOUT}
+      retries: ${HC_RETRIES}
+    deploy:
+      resources:
+        limits:
+          cpus: ${MAX_CPUS}
+          memory: ${MAX_MEMORY}
+        reservations:
+          cpus: ${MIN_CPUS}
+          memory: ${MIN_MEMORY}
+    logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
+    labels:
+      - "com.example.moodle=true"
+      - "service=moodle"
+      - "env=${ENVIRONMENT}"
