@@ -1,5 +1,5 @@
 ## Documentación
-Moodle dockerizado con MariaDB como DB. Amabas imágenes son las de Bitnami.
+Moodle dockerizado con MariaDB como DB. Ambas imágenes son las de Bitnami. Puede gestionarse la database utilizando Adminer.
 
 ### Configuración del despliegue:
 - Copiar ".env-example" a ".env" y settear las variables según convenga (se proveen valores de muestra)
