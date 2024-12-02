@@ -5,6 +5,7 @@ volumes:
   moodle_db:
   moodle_data:
   moodledata_data:
+  adminer_data:
   tmpfs:
     driver: local
     driver_opts:
@@ -38,6 +39,29 @@ services:
       - "com.example.mariadb=true"
       - "service=mariadb"
       - "env=${ENVIRONMENT}"
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    networks:
+      - moodle-network
+    ports:
+      - "8081:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mariadb", "-u", "${DB_USER}", "-p${DB_PASS}"]
+      interval: ${HC_INTERVAL}
+      timeout: ${HC_TIMEOUT}
+      retries: ${HC_RETRIES}
+    labels:
+      - "com.example.adminer=true"
+      - "service=adminer"
+      - "env=${ENVIRONMENT}"
+    volumes:
+      - adminer_data:/var/www/html
 
   moodle:
     image: bitnami/moodle:${MOODLE_VERSION}
